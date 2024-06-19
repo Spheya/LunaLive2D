@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sstream>
 
-luna::Shader loadCustomShader() {
+luna::Shader loadCustomShaders() {
 	std::fstream fragShader("assets/shaders/custom.fsh");
 	std::fstream vertShader("assets/shaders/custom.vsh");
 	std::stringstream fragBuffer;
@@ -27,13 +27,14 @@ int main() {
 		std::cout << "<Live2D> " << message << std::endl;
 	});
 
+	// setup luna
 	luna::initialize();
 	luna::live2d::Model::loadShaders();
-
-	luna::Window window;
+	luna::Window window("Live2D Example", 1200, 800);
 	luna::Camera camera(&window);
 	camera.setOrthographicSize(1.5f);
 
+	// load models
 	luna::live2d::Model model;
 	model.load("assets/models/hiyori/hiyori_free_t08.model3.json");
 	model.setTransform(luna::Transform(glm::vec3(-0.4f, 0.0f, 0.0f)));
@@ -42,26 +43,30 @@ int main() {
 	model2.load("assets/models/hiyori/hiyori_free_t08.model3.json");
 	model2.setTransform(luna::Transform(glm::vec3(0.4f, 0.0f, 0.0f)));
 
-	luna::Shader shader = loadCustomShader();
+	// load/apply custom shaders
+	luna::Shader shader = loadCustomShaders();
 	luna::Material mat(&shader);
 	mat.setMainTexture(model2.getDrawables()[0].getTexture());
 	for (size_t i = 0; i < model2.getDrawableCount(); ++i) {
 		model2.getDrawables()[i].setMaterial(&mat);
 	}
 
+	// setup renderer
+	luna::live2d::Renderer modelRenderer(&model);
+	luna::live2d::Renderer model2Renderer(&model2);
+
+	// game loop
 	while (!luna::isCloseRequested() && !window.isCloseRequested()) {
 		luna::update();
 		camera.updateAspect();
-
+		modelRenderer.beginFrame();
+		model2Renderer.beginFrame();
 		luna::RenderTarget::clear(luna::Color(0.85f, 0.85f, 0.85f));
 
-		model.update(luna::getDeltaTime());
-		model.draw(camera);
-
-		model2.update(luna::getDeltaTime());
-		model2.draw(camera);
-
 		mat.setValue("Time", luna::getTime());
+
+		model.update(luna::getDeltaTime());
+		model2.update(luna::getDeltaTime());
 
 		ImGui::Begin("Model Parameters");
 		for (size_t i = 0; i < model.getParameterCount(); ++i) {
@@ -73,6 +78,10 @@ int main() {
 		}
 		ImGui::End();
 
+		modelRenderer.endFrame();
+		model2Renderer.endFrame();
+		modelRenderer.render(camera);
+		model2Renderer.render(camera);
 		window.update();
 	}
 

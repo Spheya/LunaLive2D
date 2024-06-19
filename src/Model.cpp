@@ -16,6 +16,7 @@ namespace luna {
 		std::unique_ptr<luna::Shader> Model::s_shader;
 
 		Model::Model(Model&& other) noexcept :
+			m_transform(other.m_transform),
 			m_moc(other.m_moc),
 			m_model(other.m_model),
 			m_mocMemory(other.m_mocMemory),
@@ -24,10 +25,10 @@ namespace luna {
 			m_canvasOrigin(other.m_canvasOrigin),
 			m_pixelsPerUnit(other.m_pixelsPerUnit),
 			m_parameters(std::move(other.m_parameters)),
-			m_textures(std::move(other.m_textures)),
-			m_materials(std::move(other.m_materials)),
 			m_drawables(std::move(other.m_drawables)),
-			m_renderer(std::move(other.m_renderer)) {
+			m_textures(std::move(other.m_textures)),
+			m_materials(std::move(other.m_materials))
+		{
 			other.m_moc = nullptr;
 			other.m_model = nullptr;
 			other.m_mocMemory = nullptr;
@@ -37,6 +38,7 @@ namespace luna {
 		Model& Model::operator=(Model&& other) noexcept {
 			Model::~Model();
 
+			m_transform = other.m_transform;
 			m_moc = other.m_moc;
 			m_model = other.m_model;
 			m_mocMemory = other.m_mocMemory;
@@ -45,10 +47,9 @@ namespace luna {
 			m_canvasOrigin = other.m_canvasOrigin;
 			m_pixelsPerUnit = other.m_pixelsPerUnit;
 			m_parameters = std::move(other.m_parameters);
+			m_drawables = std::move(other.m_drawables);
 			m_textures = std::move(other.m_textures);
 			m_materials = std::move(other.m_materials);
-			m_drawables = std::move(other.m_drawables);
-			m_renderer = std::move(other.m_renderer);
 
 			other.m_moc = nullptr;
 			other.m_model = nullptr;
@@ -147,7 +148,6 @@ namespace luna {
 			m_materials.clear();
 			m_textures.clear();
 			m_parameters.clear();
-			m_renderer.reset();
 
 			if (!s_shader) {
 				log("Shaders have to be loaded before loading a  model. Use Model::loadShaders()", MessageSeverity::Error);
@@ -179,28 +179,16 @@ namespace luna {
 
 			loadMoc((rootStr + mocPath).c_str());
 
-			m_renderer = std::make_unique<Renderer>(this);
-
 			log("Live2D model loaded successfully (" + std::string(filepath) + ")", MessageSeverity::Info);
 		}
 
-		bool Model::isValid() {
+		bool Model::isValid() const {
 			return m_moc && m_model;
 		}
 
 		void Model::update(float deltatime) {
-			if (m_renderer) {
-				m_renderer->beginFrame();
-				csmResetDrawableDynamicFlags(m_model);
-				csmUpdateModel(m_model);
-				m_renderer->endFrame();
-			}
-		}
-
-		void Model::draw(const luna::Camera& camera) {
-			if (m_renderer) {
-				m_renderer->render(camera);
-			}
+			csmResetDrawableDynamicFlags(m_model);
+			csmUpdateModel(m_model);
 		}
 
 		void Model::setTransform(const Transform& transform) {

@@ -24,9 +24,8 @@ namespace luna {
 			static void unloadShaders();
 
 			void load(const char* filepath);
-			bool isValid();
+			bool isValid() const;
 			void update(float deltatime);
-			void draw(const luna::Camera& camera);
 
 			void setTransform(const Transform& transform);
 			const Transform& getTransform() const;
@@ -61,28 +60,23 @@ namespace luna {
 		private:
 			static std::unique_ptr<luna::Shader> s_shader;
 
+			luna::Transform m_transform;
+
 			csmMoc* m_moc = nullptr;
 			csmModel* m_model = nullptr;
-
 			void* m_mocMemory = nullptr;
 			void* m_modelMemory = nullptr;
 
-			luna::Transform m_transform;
-
-			// global data
 			glm::vec2 m_canvasSize = glm::vec2(0.0f);
 			glm::vec2 m_canvasOrigin = glm::vec2(0.0f);
 			float m_pixelsPerUnit = 0.0f;
 
-			// parameters
 			std::vector<Parameter> m_parameters;
+			std::vector<Drawable> m_drawables;
 
 			// rendering data
 			std::vector<luna::Texture> m_textures;
 			std::vector<luna::Material> m_materials;
-			std::vector<Drawable> m_drawables;
-
-			std::unique_ptr<Renderer> m_renderer;
 		};
 
 	}
