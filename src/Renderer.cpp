@@ -15,8 +15,7 @@ namespace luna {
 			sortDrawables();
 		}
 
-		void Renderer::beginFrame() {
-		}
+		void Renderer::beginFrame() {}
 
 		void Renderer::endFrame() {
 			// check if batches need to be rebuild
@@ -48,13 +47,16 @@ namespace luna {
 
 		void Renderer::render(const luna::Camera& camera) {
 			if (camera.getTarget()) {
+				// setup
 				auto maskTexture = luna::getTempRenderTexture(camera.getTarget()->getSize());
 				camera.getTarget()->makeActiveTarget();
 				luna::uploadCameraMatrices(camera.projection(), camera.getTransform().inverseMatrix());
 				glm::mat4 modelMatrix = m_model->getTransform().matrix();
 
+				// rendering
 				for (auto& batch : m_batches) {
 					if (batch.maskId != size_t(-1)) {
+						// batch has mask
 						maskTexture->makeActiveTarget();
 						luna::RenderTarget::clear(luna::Color::Clear);
 
@@ -64,6 +66,7 @@ namespace luna {
 						camera.getTarget()->makeActiveTarget();
 						drawBatch(batch, modelMatrix, &*maskTexture, bool(batch.drawables.front()->getConstantFlags() & 0b1000));
 					} else {
+						// no mask, just render regularly
 						drawBatch(batch, modelMatrix);
 					}
 				}
@@ -74,10 +77,10 @@ namespace luna {
 			for (auto& batch : m_batches) {
 				for (const auto* drawable : batch.drawables) {
 					if (batch.drawables.front()->getMaterial() != drawable->getMaterial())
-						return true;
+						return true; // rebuild when material changed
 
-					if (drawable->getDynamicFlags() & 0b1000)
-						return true;
+					if (drawable->getDynamicFlags() & 0b1000) 
+						return true; // rebuild when render order changed
 				}
 			}
 
@@ -87,7 +90,7 @@ namespace luna {
 		void Renderer::sortDrawables() {
 			std::sort(m_drawables.begin(), m_drawables.end(), [](const Drawable* a, const Drawable* b) {
 				return a->getRenderOrder() < b->getRenderOrder();
-				});
+			});
 
 			buildBatches(); // rebuild required after sorting
 		}
@@ -102,12 +105,15 @@ namespace luna {
 			Batch currentBatch;
 			for (const auto* drawable : m_drawables) {
 				if (!fitsInBatch(currentBatch, *drawable, false)) {
+					// new element can't be batched with previous ones, so set up new batch
 					m_batches.emplace_back(std::move(currentBatch));
 					currentBatch = {};
 					if (drawable->getMaskCount() != 0) {
+						// new batch has a mask
 						currentBatch.maskId = m_maskBatches.size();
 						m_maskBatches.emplace_back();
 
+						// set up batches for masking
 						Batch currentMaskBatch;
 						for (size_t i = 0; i < drawable->getMaskCount(); ++i) {
 							int maskDrawableIdx = drawable->getMasks()[i];
@@ -115,6 +121,7 @@ namespace luna {
 
 							const auto& mask = m_model->getDrawables()[maskDrawableIdx];
 							if (!fitsInBatch(currentMaskBatch, mask, true)) {
+								// new mask element can't be batched with previos ones, so set up new mask batch
 								m_maskBatches.back().emplace_back(std::move(currentMaskBatch));
 								currentMaskBatch = {};
 							}
@@ -128,7 +135,7 @@ namespace luna {
 			}
 			m_batches.emplace_back(std::move(currentBatch));
 
-			// build meshes
+			// build meshes for every batch
 			for (auto& batch : m_batches) {
 				buildMeshIndices(batch);
 				buildMeshVertices(batch, false);
@@ -148,10 +155,12 @@ namespace luna {
 			size_t indexCount = 0;
 			size_t index = 0;
 
+			// sum up size of index buffer
 			for (const auto* drawable : batch.drawables)
 				indexCount += drawable->getIndexCount();
 			indices.resize(indexCount);
 
+			// populate the buffer
 			for (const auto* drawable : batch.drawables) {
 				for (size_t i = 0; i < drawable->getIndexCount(); ++i) {
 					indices[index] = drawable->getIndices()[i] + indexOffset;
@@ -168,10 +177,12 @@ namespace luna {
 			size_t vertexCount = 0;
 			size_t index = 0;
 
+			// sum up size of vertex buffer
 			for (const auto* drawable : batch.drawables)
 				vertexCount += drawable->getVertexCount();
 			vertices.resize(vertexCount);
 
+			// populate the buffer
 			for (const auto* drawable : batch.drawables) {
 				uint32_t multCol = isMask ? 0xFFFFFFFF : drawable->getMultiplyColor().compressed();
 				glm::vec3 screenCol = isMask ? glm::vec3(0.0f) : drawable->getScreenColor().vec3();
@@ -203,12 +214,7 @@ namespace luna {
 			shader.uniform(shader.uniformId("ModelMatrix"), modelMatrix);
 			shader.uniform(shader.uniformId("Live2DMaskTexture"), texIdx);
 			shader.uniform(shader.uniformId("Live2DMaskTextureInversed"), int(inverseMask));
-
-			if (mask) {
-				mask->bind(texIdx);
-			} else {
-				m_noMaskTexture.bind(texIdx);
-			}
+			(mask ? *mask : m_noMaskTexture).bind(texIdx);
 
 			draw(&batch.mesh);
 		}

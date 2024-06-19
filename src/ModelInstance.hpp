@@ -12,10 +12,19 @@ struct csmModel;
 namespace luna {
 	namespace live2d {
 
+		/**
+		 * @brief An instance of the Live2D model. This class provides access to the model's
+		 * parameters and drawables. A Renderer also requires a ModelInstance to render the
+		 * model.
+		*/
 		class ModelInstance {
 		public:
 			ModelInstance(Model* model);
 
+			/**
+			 * @brief Update the physics, parameters, and vertices of this model.
+			 * @param deltatime Duration of the previous frame
+			*/
 			void update(float deltatime);
 
 			Model& getModel();

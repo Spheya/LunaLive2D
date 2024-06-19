@@ -81,5 +81,6 @@ int main() {
 		window.update();
 	}
 
+	luna::live2d::Model::unloadShaders();
 	luna::terminate();
 }

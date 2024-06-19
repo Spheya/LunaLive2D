@@ -25,13 +25,12 @@ namespace luna {
 		}
 
 		void Model::load(const char* filepath) {
-			if (!s_shader)
-				loadShaders();
-
+			// unload the model
 			m_moc.reset();
 			m_textures.clear();
 			m_materials.clear();
 
+			// open model file
 			auto root = std::filesystem::path(filepath).parent_path();
 			std::string rootStr = root.string() + "/";
 
@@ -42,10 +41,12 @@ namespace luna {
 			}
 			json modelFile = json::parse(file);
 
+			// read paths to other files
 			auto& fileReferences = modelFile.at("FileReferences");
 			std::string mocPath     = fileReferences.at("Moc");
 			auto& textureReferences = fileReferences.at("Textures");
 
+			// load textures
 			for (std::string texturePath : textureReferences) {
 				m_textures.push_back(luna::Texture::loadFromFile((rootStr + texturePath).c_str()));
 				m_textures.back().generateMipmap();
@@ -54,6 +55,7 @@ namespace luna {
 				m_materials.back().setMainTexture(&m_textures.back());
 			}
 
+			// load .moc file
 			loadMoc((rootStr + mocPath).c_str());
 		}
 

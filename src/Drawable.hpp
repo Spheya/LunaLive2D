@@ -6,6 +6,9 @@
 namespace luna {
 	namespace live2d {
 
+		/**
+		 * @brief A drawable part of the Live2D model, see the Cubism SDK documentation for reference 
+		*/
 		class Drawable {
 		public:
 			Drawable(
@@ -53,7 +56,17 @@ namespace luna {
 			float getOpacity() const;
 			int getDrawOrder() const;
 			int getRenderOrder() const;
+
+			/**
+			 * @brief The constant flags of this drawable, see the Cubism SDK documentation for reference
+			 * @return The drawable's constant flags
+			*/
 			csmFlags getConstantFlags() const;
+
+			/**
+			 * @briefGets The dynamic flags of this drawable, see the Cubism SDK documentation for reference
+			 * @return The drawable's dynamic flags
+			*/
 			csmFlags getDynamicFlags() const;
 
 			luna::Color getMultiplyColor() const;
@@ -62,6 +75,11 @@ namespace luna {
 			size_t getMaskCount() const;
 			const int* getMasks() const;
 
+			/**
+			 * @brief Checks if two Drawables have the same masking settings
+			 * @param other The other drawable
+			 * @return True if they have the same masking settings. False if they don't
+			*/
 			bool hasSameMasks(const Drawable& other) const;
 
 		private:

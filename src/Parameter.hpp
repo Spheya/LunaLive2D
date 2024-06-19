@@ -3,6 +3,9 @@
 namespace luna {
 	namespace live2d {
 
+		/**
+		 * @brief A parameter to control the movement of the Live2D model, see the Cubism SDK documentation for reference
+		*/
 		class Parameter {
 		public:
 			Parameter(const char* id, const float* minValue, const float* maxValue, const float* defaultValue, float* value);
@@ -21,8 +24,6 @@ namespace luna {
 			float getMaxValue() const;
 
 			void setValue(float value);
-
-		private:
 
 		private:
 			size_t m_hashId;

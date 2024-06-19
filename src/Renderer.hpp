@@ -25,6 +25,15 @@ namespace luna {
 			void render(const luna::Camera& camera) override;
 
 		protected:
+			/**
+			 * @brief Checks if a drawable fits within a batch (and can thus be rendered within a single drawcall). 
+			 * This function can be overriden when you need to split the batches up in case you want to render stuff
+			 * between specific drawables, like an outline filter for example.
+			 * @param batch The batch to check if the drawable fits in.
+			 * @param drawable The drawable to check if it fits in the batch.
+			 * @param isMask Whether the provided batch and drawable are a mask.
+			 * @return True if the drawable fits in the batch. False if it doesn't.
+			*/
 			virtual bool fitsInBatch(const Batch& batch, const Drawable& drawable, bool isMask);
 
 		private:
