@@ -7,7 +7,7 @@
 namespace luna {
 	namespace live2d {
 
-		class Model;
+		class ModelInstance;
 
 		class Renderer : public luna::Renderer {
 		protected:
@@ -18,7 +18,7 @@ namespace luna {
 			};
 
 		public:
-			explicit Renderer(const Model* model);
+			explicit Renderer(const ModelInstance* model);
 
 			void beginFrame() override;
 			void endFrame() override;
@@ -39,7 +39,7 @@ namespace luna {
 			void drawBatch(const Batch& batch, const glm::mat4& matrix, const luna::Texture* mask = nullptr, bool inverseMask = false);
 
 		private:
-			const Model* m_model;
+			const ModelInstance* m_model;
 
 			luna::Texture m_noMaskTexture;
 			std::vector<const Drawable*> m_drawables;

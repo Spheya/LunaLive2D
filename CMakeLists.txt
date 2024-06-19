@@ -61,20 +61,21 @@ set(SOURCE_FILES
 	"src/AlignedAllocator.cpp"
 	"src/Drawable.cpp"
 	"src/Model.cpp"
+	"src/ModelInstance.cpp"
 	"src/Parameter.cpp"
 	"src/Renderer.cpp"
 )
 
 set(INCLUDE_FILES 
-	"src/AlignedAllocator.hpp"
 	"src/Drawable.hpp"
 	"src/LunaLive2D.hpp"
+	"src/ModelInstance.hpp"
 	"src/Model.hpp"
 	"src/Parameter.hpp"
 	"src/Renderer.hpp"
 )
 
-add_library(lunalive2d $<TARGET_OBJECTS:luna> ${SOURCE_FILES})
+add_library(lunalive2d $<TARGET_OBJECTS:luna> ${SOURCE_FILES} "src/Model.cpp")
 set_property(TARGET lunalive2d PROPERTY CXX_STANDARD 20)
 
 target_include_directories(lunalive2d PUBLIC "src")

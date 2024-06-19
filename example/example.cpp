@@ -24,7 +24,7 @@ int main() {
 		std::cout << "<" << prefix << "> " << message << std::endl;
 	});
 	csmSetLogFunction([](const char* message) {
-		std::cout << "<Live2D> " << message << std::endl;
+		std::cout << "<Live2D> " << message;
 	});
 
 	// setup luna
@@ -35,12 +35,12 @@ int main() {
 	camera.setOrthographicSize(1.5f);
 
 	// load models
-	luna::live2d::Model model;
-	model.load("assets/models/hiyori/hiyori_free_t08.model3.json");
-	model.setTransform(luna::Transform(glm::vec3(-0.4f, 0.0f, 0.0f)));
-	
-	luna::live2d::Model model2;
-	model2.load("assets/models/hiyori/hiyori_free_t08.model3.json");
+	luna::live2d::Model model("assets/models/hiyori/hiyori_free_t08.model3.json");
+	luna::live2d::ModelInstance model1(&model);
+	luna::live2d::ModelInstance model2(&model);
+	luna::live2d::Renderer modelRenderer(&model1);
+	luna::live2d::Renderer model2Renderer(&model2);
+	model1.setTransform(luna::Transform(glm::vec3(-0.4f, 0.0f, 0.0f)));
 	model2.setTransform(luna::Transform(glm::vec3(0.4f, 0.0f, 0.0f)));
 
 	// load/apply custom shaders
@@ -50,10 +50,6 @@ int main() {
 	for (size_t i = 0; i < model2.getDrawableCount(); ++i) {
 		model2.getDrawables()[i].setMaterial(&mat);
 	}
-
-	// setup renderer
-	luna::live2d::Renderer modelRenderer(&model);
-	luna::live2d::Renderer model2Renderer(&model2);
 
 	// game loop
 	while (!luna::isCloseRequested() && !window.isCloseRequested()) {
@@ -65,12 +61,12 @@ int main() {
 
 		mat.setValue("Time", luna::getTime());
 
-		model.update(luna::getDeltaTime());
+		model1.update(luna::getDeltaTime());
 		model2.update(luna::getDeltaTime());
 
 		ImGui::Begin("Model Parameters");
-		for (size_t i = 0; i < model.getParameterCount(); ++i) {
-			auto& param = model.getParameters()[i];
+		for (size_t i = 0; i < model1.getParameterCount(); ++i) {
+			auto& param = model1.getParameters()[i];
 			float value = param.getValue();
 			ImGui::SliderFloat(param.getId(), &value, param.getMinValue(), param.getMaxValue());
 			param.setValue(value);

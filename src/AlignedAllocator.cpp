@@ -31,6 +31,8 @@ namespace luna {
         }
 
         void AlignedAllocator::deallocate(void* data) {
+            if (data == nullptr) return;
+
             void** preamble;
 
             preamble = static_cast<void**>(data);

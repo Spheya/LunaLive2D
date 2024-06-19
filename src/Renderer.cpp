@@ -1,11 +1,11 @@
 #include "Renderer.hpp"
 
-#include "Model.hpp"
+#include "ModelInstance.hpp"
 
 namespace luna {
 	namespace live2d {
 
-		Renderer::Renderer(const Model* model) :
+		Renderer::Renderer(const ModelInstance* model) :
 			m_model(model),
 			m_noMaskTexture(luna::Color::White) {
 			m_drawables.resize(m_model->getDrawableCount());

@@ -4,5 +4,6 @@
 
 #include "Drawable.hpp"
 #include "Model.hpp"
+#include "ModelInstance.hpp"
 #include "Parameter.hpp"
 #include "Renderer.hpp"

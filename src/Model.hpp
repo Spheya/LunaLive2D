@@ -2,79 +2,49 @@
 
 #include <luna.hpp>
 
-#include "Renderer.hpp"
-#include "Parameter.hpp"
-
 struct csmMoc;
 struct csmModel;
 
 namespace luna {
 	namespace live2d {
+		using CoreMoc = std::unique_ptr<csmMoc, void(*)(void*)>;
+		using CoreModel = std::unique_ptr<csmModel, void(*)(void*)>;
 
 		class Model {
 		public:
-			Model() = default;
-			Model(Model&) = delete;
-			Model& operator=(Model&) = delete;
-			Model(Model&& other) noexcept;
-			Model& operator=(Model&& other) noexcept;
-			~Model();
+			Model();
+			explicit Model(const char* filepath);
+
+			void load(const char* filepath);
+
+			CoreModel createCoreModel() const;
+
+			bool isValid() const;
+			const CoreMoc& getMoc() const;
+			CoreMoc& getMoc();
+
+			size_t getTextureCount() const;
+			const luna::Texture* getTextures() const;
+			luna::Texture* getTextures();
+
+			size_t getMaterialCount() const;
+			const luna::Material* getMaterials() const;
+			luna::Material* getMaterials();
+
+			static luna::Shader* getShader();
 
 			static void loadShaders();
 			static void unloadShaders();
 
-			void load(const char* filepath);
-			bool isValid() const;
-			void update(float deltatime);
-
-			void setTransform(const Transform& transform);
-			const Transform& getTransform() const;
-			Transform& getTransform();
-
-			glm::vec2 getCanvasSize() const;
-			glm::vec2 getCanvasOrigin() const;
-			float getPixelsPerUnit() const;
-
-			size_t getDrawableCount() const;
-			Drawable* getDrawables();
-			const Drawable* getDrawables() const;
-			const Drawable* getDrawable(const char* id) const;
-			Drawable* getDrawable(const char* id);
-
-			size_t getParameterCount() const;
-			Parameter* getParameters();
-			const Parameter* getParameters() const;
-			const Parameter* getParameter(const char* id) const;
-			Parameter* getParameter(const char* id);
-
 		private:
-			void loadMoc(const char* path);
 			static void* readFileAligned(const char* path, unsigned int alignment, size_t& size);
-
-			void initializeDrawables();
-			void initializeParameters();
-
-			const csmMoc* getMoc() const;
-			const csmModel* getModel() const;
+			void loadMoc(const char* filepath);
 
 		private:
 			static std::unique_ptr<luna::Shader> s_shader;
 
-			luna::Transform m_transform;
+			CoreMoc m_moc;
 
-			csmMoc* m_moc = nullptr;
-			csmModel* m_model = nullptr;
-			void* m_mocMemory = nullptr;
-			void* m_modelMemory = nullptr;
-
-			glm::vec2 m_canvasSize = glm::vec2(0.0f);
-			glm::vec2 m_canvasOrigin = glm::vec2(0.0f);
-			float m_pixelsPerUnit = 0.0f;
-
-			std::vector<Parameter> m_parameters;
-			std::vector<Drawable> m_drawables;
-
-			// rendering data
 			std::vector<luna::Texture> m_textures;
 			std::vector<luna::Material> m_materials;
 		};
