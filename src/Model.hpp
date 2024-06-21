@@ -9,6 +9,9 @@ struct csmModel;
 
 namespace luna {
 	namespace live2d {
+		void initialize();
+		void terminate();
+
 		using CoreMoc = std::unique_ptr<csmMoc, void(*)(void*)>;
 		using CoreModel = std::unique_ptr<csmModel, void(*)(void*)>;
 
@@ -63,16 +66,11 @@ namespace luna {
 
 			static luna::Shader* getShader();
 
-			static void loadShaders();
-			static void unloadShaders();
-
 		private:
 			static void* readFileAligned(const char* path, unsigned int alignment, size_t& size);
 			void loadMoc(const char* filepath);
 
 		private:
-			static std::unique_ptr<luna::Shader> s_shader;
-
 			CoreMoc m_moc;
 
 			std::unique_ptr<PhysicsController> m_physicsControllerPrototype;

@@ -29,7 +29,7 @@ int main() {
 
 	// setup luna
 	luna::initialize();
-	luna::live2d::Model::loadShaders();
+	luna::live2d::initialize();
 	luna::Window window("Live2D Example", 1200, 800);
 	luna::Camera camera(&window);
 	camera.setOrthographicSize(1.5f);
@@ -81,6 +81,6 @@ int main() {
 		window.update();
 	}
 
-	luna::live2d::Model::unloadShaders();
+	luna::live2d::terminate();
 	luna::terminate();
 }
