@@ -23,7 +23,7 @@ namespace luna {
 			 * @param model A pointer to the Model resource. This pointer has to stay valid 
 			 * throughout the lifespan of this instance.
 			*/
-			ModelInstance(Model* model);
+			explicit ModelInstance(Model* model = nullptr);
 
 			/**
 			 * @brief Update the physics, parameters, and vertices of this model.
