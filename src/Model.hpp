@@ -40,6 +40,11 @@ namespace luna {
 			void load(const char* filepath, LoadFlags = None);
 
 			/**
+			 * @brief Removes all the contents of this Model
+			*/
+			void reset();
+
+			/**
 			 * @brief Creates a csmModel based on the internal csmMoc of this class.
 			 * @return A new csmModel based on the .moc file this class has loaded.
 			*/

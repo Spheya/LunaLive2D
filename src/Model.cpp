@@ -95,10 +95,7 @@ namespace luna {
 
 		void Model::load(const char* filepath, LoadFlags flags) {
 			// unload the model
-			m_moc.reset();
-			m_physicsControllerPrototype.reset();
-			m_textures.clear();
-			m_materials.clear();
+			reset();
 
 			// open model file
 			auto root = std::filesystem::path(filepath).parent_path();
@@ -107,6 +104,7 @@ namespace luna {
 			std::ifstream file(filepath);
 			if (file.bad() || file.fail() || file.eof()) {
 				log("Could not open file at \"" + std::string(filepath) + "\"", MessageSeverity::Error);
+				reset();
 				return;
 			}
 			json modelFile = json::parse(file);
@@ -133,10 +131,19 @@ namespace luna {
 			loadMoc((rootStr + mocPath).c_str());
 		}
 
+		void Model::reset() {
+			m_moc.reset();
+			m_physicsControllerPrototype.reset();
+			m_textures.clear();
+			m_materials.clear();
+		}
+
 		CoreModel Model::createCoreModel() const {
-			unsigned int modelSize = csmGetSizeofModel(m_moc.get());
-			void* modelMemory = AlignedAllocator::allocate(modelSize, csmAlignofModel);
-			return CoreModel(csmInitializeModelInPlace(m_moc.get(), modelMemory, modelSize), AlignedAllocator::deallocate);
+			if (m_moc) {
+				unsigned int modelSize = csmGetSizeofModel(m_moc.get());
+				void* modelMemory = AlignedAllocator::allocate(modelSize, csmAlignofModel);
+				return CoreModel(csmInitializeModelInPlace(m_moc.get(), modelMemory, modelSize), AlignedAllocator::deallocate);
+			}
 		}
 
 
@@ -202,13 +209,16 @@ namespace luna {
 			// read file
 			size_t mocSize;
 			void* mocMemory = readFileAligned(filepath, csmAlignofMoc, mocSize);
-			if (mocMemory == nullptr)
+			if (mocMemory == nullptr) {
+				reset();
 				return;
+			}
 
 			// check for malformation
 			int consistency = csmHasMocConsistency(mocMemory, unsigned(mocSize));
 			if (!consistency) {
 				log("Live2D model file is malformed (" + std::string(filepath) + ")", MessageSeverity::Error);
+				reset();
 				return;
 			}
 
