@@ -19,6 +19,10 @@ namespace luna {
 		*/
 		class ModelInstance {
 		public:
+			/**
+			 * @param model A pointer to the Model resource. This pointer has to stay valid 
+			 * throughout the lifespan of this instance.
+			*/
 			ModelInstance(Model* model);
 
 			/**
@@ -27,8 +31,8 @@ namespace luna {
 			*/
 			void update(float deltatime);
 
-			Model& getModel();
-			const Model& getModel() const;
+			Model* getModel();
+			const Model* getModel() const;
 
 			PhysicsController* getPhysicsController();
 			const PhysicsController* getPhysicsController() const;

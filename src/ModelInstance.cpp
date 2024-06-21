@@ -11,29 +11,31 @@ namespace luna {
 	namespace live2d {
 
 		ModelInstance::ModelInstance(Model* model) :
-			m_coreModel(model->createCoreModel()),
+			m_coreModel(model ? model->createCoreModel() : CoreModel(nullptr, AlignedAllocator::deallocate)),
 			m_model(model),
-			m_physicsController(model->createPhysicsController())
+			m_physicsController(model ? model->createPhysicsController() : nullptr)
 		{
-			csmVector2 size;
-			csmVector2 origin;
-			csmReadCanvasInfo(m_coreModel.get(), &size, &origin, &m_pixelsPerUnit);
-			m_canvasSize = glm::vec2(size.X, size.Y) / m_pixelsPerUnit;
-			m_canvasOrigin = glm::vec2(origin.X, origin.Y) / m_pixelsPerUnit;
+			if (m_coreModel) {
+				csmVector2 size;
+				csmVector2 origin;
+				csmReadCanvasInfo(m_coreModel.get(), &size, &origin, &m_pixelsPerUnit);
+				m_canvasSize = glm::vec2(size.X, size.Y) / m_pixelsPerUnit;
+				m_canvasOrigin = glm::vec2(origin.X, origin.Y) / m_pixelsPerUnit;
 
-			initializeDrawables();
-			initializeParameters();
+				initializeDrawables();
+				initializeParameters();
+			}
 
 			if (m_physicsController)
 				m_physicsController->attachTo(this);
 		}
 
-		Model& ModelInstance::getModel() {
-			return *m_model;
+		Model* ModelInstance::getModel() {
+			return m_model;
 		}
 
-		const Model& ModelInstance::getModel() const {
-			return *m_model;
+		const Model* ModelInstance::getModel() const {
+			return m_model;
 		}
 
 		PhysicsController* ModelInstance::getPhysicsController() {
@@ -48,8 +50,10 @@ namespace luna {
 			if (m_physicsController)
 				m_physicsController->update(deltatime);
 
-			csmResetDrawableDynamicFlags(m_coreModel.get());
-			csmUpdateModel(m_coreModel.get());
+			if (m_coreModel) {
+				csmResetDrawableDynamicFlags(m_coreModel.get());
+				csmUpdateModel(m_coreModel.get());
+			}
 		}
 
 		void ModelInstance::setTransform(const Transform& transform) {
@@ -126,6 +130,8 @@ namespace luna {
 
 		void ModelInstance::initializeDrawables() {
 			assert(m_drawables.empty());
+			if (!m_coreModel)
+				return;
 
 			int drawableCount = csmGetDrawableCount(m_coreModel.get());
 			m_drawables.reserve(drawableCount);
@@ -180,6 +186,8 @@ namespace luna {
 
 		void ModelInstance::initializeParameters() {
 			assert(m_parameters.empty());
+			if (!m_coreModel)
+				return;
 
 			size_t paramCount = size_t(csmGetParameterCount(m_coreModel.get()));
 			m_parameters.reserve(paramCount);
