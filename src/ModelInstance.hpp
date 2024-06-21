@@ -30,6 +30,9 @@ namespace luna {
 			Model& getModel();
 			const Model& getModel() const;
 
+			PhysicsController* getPhysicsController();
+			const PhysicsController* getPhysicsController() const;
+
 			void setTransform(const Transform& transform);
 			const Transform& getTransform() const;
 			Transform& getTransform();
@@ -57,6 +60,8 @@ namespace luna {
 		private:
 			CoreModel m_coreModel;
 			Model* m_model;
+
+			std::unique_ptr<PhysicsController> m_physicsController;
 
 			luna::Transform m_transform;
 

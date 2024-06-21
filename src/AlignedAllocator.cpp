@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-// stolen from https://github.com//CubismNativeSamples/blob/develop/Samples/OpenGL/Demo/proj.win.cmake/src/LAppAllocator.cpp
+// yoinked from https://github.com/Live2D/CubismNativeSamples/blob/develop/Samples/OpenGL/Demo/proj.win.cmake/src/LAppAllocator.cpp
 
 namespace luna {
     namespace live2d {

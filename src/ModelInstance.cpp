@@ -3,19 +3,17 @@
 #include <filesystem>
 #include <fstream>
 #include <cassert>
-#include <nlohmann/json.hpp>
 #include <Live2DCubismCore.h>
 
 #include "AlignedAllocator.hpp"
-
-using json = nlohmann::json;
 
 namespace luna {
 	namespace live2d {
 
 		ModelInstance::ModelInstance(Model* model) :
 			m_coreModel(model->createCoreModel()),
-			m_model(model)
+			m_model(model),
+			m_physicsController(model->createPhysicsController())
 		{
 			csmVector2 size;
 			csmVector2 origin;
@@ -25,6 +23,9 @@ namespace luna {
 
 			initializeDrawables();
 			initializeParameters();
+
+			if (m_physicsController)
+				m_physicsController->attachTo(this);
 		}
 
 		Model& ModelInstance::getModel() {
@@ -35,7 +36,18 @@ namespace luna {
 			return *m_model;
 		}
 
+		PhysicsController* ModelInstance::getPhysicsController() {
+			return m_physicsController.get();
+		}
+
+		const PhysicsController* ModelInstance::getPhysicsController() const {
+			return m_physicsController.get();
+		}
+
 		void ModelInstance::update(float deltatime) {
+			if (m_physicsController)
+				m_physicsController->update(deltatime);
+
 			csmResetDrawableDynamicFlags(m_coreModel.get());
 			csmUpdateModel(m_coreModel.get());
 		}
@@ -103,13 +115,13 @@ namespace luna {
 		const Parameter* ModelInstance::getParameter(const char* id) const {
 			std::hash<std::string> hasher;
 			auto it = std::find_if(m_parameters.begin(), m_parameters.end(), [hash = hasher(id)](const Parameter& x) { return x.getIdHash() == hash; });
-			return it == m_parameters.end() ? &(*it) : nullptr;
+			return it == m_parameters.end() ? nullptr : &(*it);
 		}
 
 		Parameter* ModelInstance::getParameter(const char* id) {
 			std::hash<std::string> hasher;
 			auto it = std::find_if(m_parameters.begin(), m_parameters.end(), [hash = hasher(id)](const Parameter& x) { return x.getIdHash() == hash; });
-			return it == m_parameters.end() ? &(*it) : nullptr;
+			return it == m_parameters.end() ? nullptr : &(*it);
 		}
 
 		void ModelInstance::initializeDrawables() {

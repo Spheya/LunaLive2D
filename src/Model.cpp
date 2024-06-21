@@ -20,13 +20,14 @@ namespace luna {
 
 		Model::Model() : m_moc(nullptr, AlignedAllocator::deallocate) {}
 
-		Model::Model(const char* filepath) : Model() {
-			load(filepath);
+		Model::Model(const char* filepath, LoadFlags flags) : Model() {
+			load(filepath, flags);
 		}
 
-		void Model::load(const char* filepath) {
+		void Model::load(const char* filepath, LoadFlags flags) {
 			// unload the model
 			m_moc.reset();
+			m_physicsControllerPrototype.reset();
 			m_textures.clear();
 			m_materials.clear();
 
@@ -40,13 +41,10 @@ namespace luna {
 				return;
 			}
 			json modelFile = json::parse(file);
-
-			// read paths to other files
 			auto& fileReferences = modelFile.at("FileReferences");
-			std::string mocPath     = fileReferences.at("Moc");
-			auto& textureReferences = fileReferences.at("Textures");
 
 			// load textures
+			auto& textureReferences = fileReferences.at("Textures");
 			for (std::string texturePath : textureReferences) {
 				m_textures.push_back(luna::Texture::loadFromFile((rootStr + texturePath).c_str()));
 				m_textures.back().generateMipmap();
@@ -55,7 +53,14 @@ namespace luna {
 				m_materials.back().setMainTexture(&m_textures.back());
 			}
 
+			// load physics
+			if (!(flags & NoPhysics)) {
+				std::string physicsPath = fileReferences.at("Physics");
+				m_physicsControllerPrototype = std::make_unique<PhysicsController>((rootStr + physicsPath).c_str());
+			}
+
 			// load .moc file
+			std::string mocPath = fileReferences.at("Moc");
 			loadMoc((rootStr + mocPath).c_str());
 		}
 
@@ -63,6 +68,13 @@ namespace luna {
 			unsigned int modelSize = csmGetSizeofModel(m_moc.get());
 			void* modelMemory = AlignedAllocator::allocate(modelSize, csmAlignofModel);
 			return CoreModel(csmInitializeModelInPlace(m_moc.get(), modelMemory, modelSize), AlignedAllocator::deallocate);
+		}
+
+
+		std::unique_ptr<PhysicsController> Model::createPhysicsController() const {
+			if (!m_physicsControllerPrototype)
+				return nullptr;
+			return std::make_unique<PhysicsController>(*m_physicsControllerPrototype);
 		}
 
 		bool Model::isValid() const {

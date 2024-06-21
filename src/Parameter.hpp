@@ -22,6 +22,9 @@ namespace luna {
 			float getDefaultValue() const;
 			float getMinValue() const;
 			float getMaxValue() const;
+			float getNormalizedValue() const;
+			float getNormalizedValue(float min, float max) const;
+			float getNormalizedValue(float base, float min, float max) const;
 
 			void setValue(float value);
 

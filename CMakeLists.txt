@@ -63,6 +63,7 @@ set(SOURCE_FILES
 	"src/Model.cpp"
 	"src/ModelInstance.cpp"
 	"src/Parameter.cpp"
+	"src/Physics.cpp"
 	"src/Renderer.cpp"
 )
 
@@ -72,10 +73,11 @@ set(INCLUDE_FILES
 	"src/ModelInstance.hpp"
 	"src/Model.hpp"
 	"src/Parameter.hpp"
+	"src/Pysics.hpp"
 	"src/Renderer.hpp"
 )
 
-add_library(lunalive2d $<TARGET_OBJECTS:luna> ${SOURCE_FILES} "src/Model.cpp")
+add_library(lunalive2d $<TARGET_OBJECTS:luna> ${SOURCE_FILES})
 set_property(TARGET lunalive2d PROPERTY CXX_STANDARD 20)
 
 target_include_directories(lunalive2d PUBLIC "src")

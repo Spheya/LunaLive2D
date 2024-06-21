@@ -2,6 +2,8 @@
 
 #include <luna.hpp>
 
+#include "Physics.hpp"
+
 struct csmMoc;
 struct csmModel;
 
@@ -16,24 +18,36 @@ namespace luna {
 		*/
 		class Model {
 		public:
+			enum LoadFlags {
+				None = 0x0,
+				NoPhysics = 0x1,
+			};
+
 			Model();
 			/**
 			 * @brief Loads in the model from a file
 			 * @param filepath The path to the .model3.json file
 			*/
-			explicit Model(const char* filepath);
+			explicit Model(const char* filepath, LoadFlags = None);
 
 			/**
 			 * @brief Loads in the model from a file
 			 * @param filepath The path to the .model3.json file
 			*/
-			void load(const char* filepath);
+			void load(const char* filepath, LoadFlags = None);
 
 			/**
 			 * @brief Creates a csmModel based on the internal csmMoc of this class.
 			 * @return A new csmModel based on the .moc file this class has loaded.
 			*/
 			CoreModel createCoreModel() const;
+
+			/**
+			 * @brief Creates a PhysicsController based on the loaded model
+			 * @return A new PhysicsController based on the .physics3.json file that
+			 * this class has loaded.
+			*/
+			std::unique_ptr<PhysicsController> createPhysicsController() const;
 
 			bool isValid() const;
 			const CoreMoc& getMoc() const;
@@ -60,6 +74,8 @@ namespace luna {
 			static std::unique_ptr<luna::Shader> s_shader;
 
 			CoreMoc m_moc;
+
+			std::unique_ptr<PhysicsController> m_physicsControllerPrototype;
 
 			std::vector<luna::Texture> m_textures;
 			std::vector<luna::Material> m_materials;
