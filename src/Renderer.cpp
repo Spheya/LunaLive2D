@@ -7,7 +7,10 @@ namespace luna {
 
 		Renderer::Renderer(const ModelInstance* model) :
 			m_model(model),
-			m_noMaskTexture(luna::Color::White) {
+			m_noMaskTexture(luna::Color::White)
+		{
+			if (!m_model) return;
+
 			m_drawables.resize(m_model->getDrawableCount());
 			for (size_t i = 0; i < m_drawables.size(); ++i)
 				m_drawables[i] = &m_model->getDrawables()[i];
@@ -46,29 +49,30 @@ namespace luna {
 		}
 
 		void Renderer::render(const luna::Camera& camera) {
-			if (camera.getTarget()) {
-				// setup
-				auto maskTexture = luna::getTempRenderTexture(camera.getTarget()->getSize());
-				camera.getTarget()->makeActiveTarget();
-				luna::uploadCameraMatrices(camera.projection(), camera.getTransform().inverseMatrix());
-				glm::mat4 modelMatrix = m_model->getTransform().matrix();
+			if (!camera.getTarget() || !m_model)
+				return;
 
-				// rendering
-				for (auto& batch : m_batches) {
-					if (batch.maskId != size_t(-1)) {
-						// batch has mask
-						maskTexture->makeActiveTarget();
-						luna::RenderTarget::clear(luna::Color::Clear);
+			// setup
+			auto maskTexture = luna::getTempRenderTexture(camera.getTarget()->getSize());
+			camera.getTarget()->makeActiveTarget();
+			luna::uploadCameraMatrices(camera.projection(), camera.getTransform().inverseMatrix());
+			glm::mat4 modelMatrix = m_model->getTransform().matrix();
 
-						for (auto& maskBatch : m_maskBatches[batch.maskId])
-							drawBatch(maskBatch, modelMatrix);
+			// rendering
+			for (auto& batch : m_batches) {
+				if (batch.maskId != size_t(-1)) {
+					// batch has mask
+					maskTexture->makeActiveTarget();
+					luna::RenderTarget::clear(luna::Color::Clear);
 
-						camera.getTarget()->makeActiveTarget();
-						drawBatch(batch, modelMatrix, &*maskTexture, bool(batch.drawables.front()->getConstantFlags() & 0b1000));
-					} else {
-						// no mask, just render regularly
-						drawBatch(batch, modelMatrix);
-					}
+					for (auto& maskBatch : m_maskBatches[batch.maskId])
+						drawBatch(maskBatch, modelMatrix);
+
+					camera.getTarget()->makeActiveTarget();
+					drawBatch(batch, modelMatrix, &*maskTexture, bool(batch.drawables.front()->getConstantFlags() & 0b1000));
+				} else {
+					// no mask, just render regularly
+					drawBatch(batch, modelMatrix);
 				}
 			}
 		}

@@ -18,7 +18,7 @@ namespace luna {
 			};
 
 		public:
-			explicit Renderer(const ModelInstance* model);
+			explicit Renderer(const ModelInstance* model = nullptr);
 
 			void beginFrame() override;
 			void endFrame() override;
