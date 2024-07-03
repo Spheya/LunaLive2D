@@ -121,7 +121,7 @@ namespace luna {
 			}
 
 			// load physics
-			if (!(flags & NoPhysics)) {
+			if (!(flags & NoPhysics) && fileReferences.contains("Physics")) {
 				std::string physicsPath = fileReferences.at("Physics");
 				m_physicsControllerPrototype = std::make_unique<PhysicsController>((rootStr + physicsPath).c_str());
 			}
