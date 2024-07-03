@@ -26,7 +26,7 @@ namespace luna {
 				sortDrawables();
 
 			// only rebuild meshes that had a drawable update
-			for (auto& batch : m_batches) {
+			for (auto& batch : batches) {
 				for (const auto* drawable : batch.drawables) {
 					if (drawable->getDynamicFlags() & 0b1100110) {
 						buildMeshVertices(batch, false);
@@ -36,7 +36,7 @@ namespace luna {
 			}
 
 			// same thing for mask batches
-			for (auto& maskBatchVec : m_maskBatches) {
+			for (auto& maskBatchVec : maskBatches) {
 				for (auto& batch : maskBatchVec) {
 					for (const auto* drawable : batch.drawables) {
 						if (drawable->getDynamicFlags() & 0b100110) {
@@ -59,13 +59,13 @@ namespace luna {
 			glm::mat4 modelMatrix = m_model->getTransform().matrix();
 
 			// rendering
-			for (auto& batch : m_batches) {
-				if (batch.maskId != size_t(-1)) {
+			for (auto& batch : batches) {
+				if (batch.maskIdx != size_t(-1)) {
 					// batch has mask
 					maskTexture->makeActiveTarget();
 					luna::RenderTarget::clear(luna::Color::Clear);
 
-					for (auto& maskBatch : m_maskBatches[batch.maskId])
+					for (auto& maskBatch : maskBatches[batch.maskIdx])
 						drawBatch(maskBatch, modelMatrix);
 
 					camera.getTarget()->makeActiveTarget();
@@ -78,7 +78,7 @@ namespace luna {
 		}
 
 		bool Renderer::checkRebuild() {
-			for (auto& batch : m_batches) {
+			for (auto& batch : batches) {
 				for (const auto* drawable : batch.drawables) {
 					if (batch.drawables.front()->getMaterial() != drawable->getMaterial())
 						return true; // rebuild when material changed
@@ -100,8 +100,8 @@ namespace luna {
 		}
 
 		void Renderer::buildBatches() {
-			m_batches.clear();
-			m_maskBatches.clear();
+			batches.clear();
+			maskBatches.clear();
 
 			if (m_drawables.empty()) return;
 
@@ -110,12 +110,12 @@ namespace luna {
 			for (const auto* drawable : m_drawables) {
 				if (!fitsInBatch(currentBatch, *drawable, false)) {
 					// new element can't be batched with previous ones, so set up new batch
-					m_batches.emplace_back(std::move(currentBatch));
+					batches.emplace_back(std::move(currentBatch));
 					currentBatch = {};
 					if (drawable->getMaskCount() != 0) {
 						// new batch has a mask
-						currentBatch.maskId = m_maskBatches.size();
-						m_maskBatches.emplace_back();
+						currentBatch.maskIdx = maskBatches.size();
+						maskBatches.emplace_back();
 
 						// set up batches for masking
 						Batch currentMaskBatch;
@@ -126,26 +126,26 @@ namespace luna {
 							const auto& mask = m_model->getDrawables()[maskDrawableIdx];
 							if (!fitsInBatch(currentMaskBatch, mask, true)) {
 								// new mask element can't be batched with previos ones, so set up new mask batch
-								m_maskBatches.back().emplace_back(std::move(currentMaskBatch));
+								maskBatches.back().emplace_back(std::move(currentMaskBatch));
 								currentMaskBatch = {};
 							}
 							currentMaskBatch.drawables.push_back(&mask);
 						}
 
-						m_maskBatches.back().emplace_back(std::move(currentMaskBatch));
+						maskBatches.back().emplace_back(std::move(currentMaskBatch));
 					}
 				}
 				currentBatch.drawables.push_back(drawable);
 			}
-			m_batches.emplace_back(std::move(currentBatch));
+			batches.emplace_back(std::move(currentBatch));
 
 			// build meshes for every batch
-			for (auto& batch : m_batches) {
+			for (auto& batch : batches) {
 				buildMeshIndices(batch);
 				buildMeshVertices(batch, false);
 			}
 
-			for (auto& maskBatchVec : m_maskBatches) {
+			for (auto& maskBatchVec : maskBatches) {
 				for (auto& batch : maskBatchVec) {
 					buildMeshIndices(batch);
 					buildMeshVertices(batch, true);

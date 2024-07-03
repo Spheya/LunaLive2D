@@ -14,7 +14,7 @@ namespace luna {
 			struct Batch {
 				std::vector<const Drawable*> drawables;
 				luna::Mesh mesh;
-				size_t maskId = size_t(-1);
+				size_t maskIdx = size_t(-1);
 			};
 
 		public:
@@ -36,6 +36,16 @@ namespace luna {
 			*/
 			virtual bool fitsInBatch(const Batch& batch, const Drawable& drawable, bool isMask);
 
+			/**
+			 * @brief The different batches that this renderer should draw
+			*/
+			std::vector<Batch> batches;
+			
+			/**
+			 * @brief Batches for rendering masks
+			*/
+			std::vector<std::vector<Batch>> maskBatches;
+
 		private:
 			bool checkRebuild();
 
@@ -52,9 +62,6 @@ namespace luna {
 
 			luna::Texture m_noMaskTexture;
 			std::vector<const Drawable*> m_drawables;
-
-			std::vector<Batch> m_batches;
-			std::vector<std::vector<Batch>> m_maskBatches;
 		};
 
 	}
